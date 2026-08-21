@@ -1337,17 +1337,38 @@ void eDVBServicePlay::serviceEvent(int event)
 		/* Register EMM PIDs (parsed dynamically from CAT table) and ECM PIDs (parsed dynamically from PMT table) for SAT>IP / vtuner demux filtering when enabled */
 		if (eSimpleConfig::getBool("config.streaming.satip_add_extra_pids", true))
 		{
+			static const std::vector<int> EXTRA_STATIC_PIDS = {
+				0x0014 // PID 20: TDT / TOT / EIT time synchronization
+			};
+
 			ePtr<iDVBDemux> live_demux;
 			if (m_service_handler.getDataDemux(live_demux) == 0 && live_demux)
 			{
-				if (!m_extra_pids_reader && live_demux->createSectionReader(eApp, m_extra_pids_reader) == 0 && m_extra_pids_reader)
+				for (int extra_pid : EXTRA_STATIC_PIDS)
 				{
-					eDVBSectionFilterMask mask = {};
-					mask.pid = 20;
-					mask.data[0] = 0x00;
-					mask.mask[0] = 0x00;
-					m_extra_pids_reader->start(mask);
-					eDebug("[eDVBServicePlay] Persistent section reader started on PID 20 (0x0014)");
+					if (extra_pid > 0 && extra_pid < 0x1FFF)
+					{
+						bool exists = false;
+						for (int existing_pid : m_extra_pids)
+						{
+							if (existing_pid == extra_pid) { exists = true; break; }
+						}
+						if (!exists)
+						{
+							ePtr<iDVBSectionReader> extra_reader;
+							if (live_demux->createSectionReader(eApp, extra_reader) == 0 && extra_reader)
+							{
+								eDVBSectionFilterMask mask = {};
+								mask.pid = extra_pid;
+								mask.data[0] = 0x00;
+								mask.mask[0] = 0x00;
+								extra_reader->start(mask);
+								m_extra_pids_readers.push_back(extra_reader);
+								m_extra_pids.push_back(extra_pid);
+								eDebug("[eDVBServicePlay] Persistent section reader started on extra PID %d (0x%04x)", extra_pid, extra_pid);
+							}
+						}
+					}
 				}
 
 				eDVBServicePMTHandler::program program;
@@ -1833,11 +1854,13 @@ RESULT eDVBServicePlay::stop()
 
 	cleanupSoftwareDescrambling();
 
-	if (m_extra_pids_reader)
+	for (auto& reader : m_extra_pids_readers)
 	{
-		m_extra_pids_reader->stop();
-		m_extra_pids_reader = nullptr;
+		if (reader)
+			reader->stop();
 	}
+	m_extra_pids_readers.clear();
+	m_extra_pids.clear();
 	for (auto& reader : m_ecm_readers)
 	{
 		if (reader)
