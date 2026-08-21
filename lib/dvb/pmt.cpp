@@ -244,6 +244,7 @@ void eDVBServicePMTHandler::PATready(int)
 	ePtr<eTable<ProgramAssociationSection> > ptr;
 	if (!m_PAT.getCurrent(ptr))
 	{
+		m_cached_program.emmPids.clear();
 		int service_id_single = -1;
 		int pmtpid_single = -1;
 		int pmtpid = -1;
@@ -1215,6 +1216,7 @@ int eDVBServicePMTHandler::tuneExt(eServiceReferenceDVB &ref, ePtr<iTsSource> &s
 	m_reference.name = ""; // clear name, we don't need it
 	m_pmt_ready = false;
 	m_have_cached_program = false;
+	m_cached_program.emmPids.clear();
 	m_last_channel_state = -1;
 
 	/*
