@@ -1370,8 +1370,8 @@ void eDVBServicePlay::serviceEvent(int event)
 								{
 									eDVBSectionFilterMask mask = {};
 									mask.pid = emm_pid;
-									mask.data[0] = 0x80;
-									mask.mask[0] = 0x80;
+									mask.data[0] = 0x00;
+									mask.mask[0] = 0x00;
 									emm_reader->start(mask);
 									m_emm_readers.push_back(emm_reader);
 									m_emm_pids.push_back(emm_pid);
@@ -3707,6 +3707,11 @@ void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
 	eDVBServicePMTHandler::program program;
 	if (h.getProgramInfo(program))
 		eDebug("[eDVBServicePlay] getting program info failed.");
+	else if (program.videoStreams.empty() && program.audioStreams.empty())
+	{
+		eDebug("[eDVBServicePlay] updateDecoder: no streams available yet, skipping decoder reconfig");
+		return;
+	}
 	else
 	{
 		eDebugNoNewLineStart("[eDVBServicePlay] have %zd video stream(s)", program.videoStreams.size());

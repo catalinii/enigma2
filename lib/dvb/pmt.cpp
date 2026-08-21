@@ -294,18 +294,16 @@ void eDVBServicePMTHandler::PATready(int)
 
 void eDVBServicePMTHandler::CATready(int error)
 {
+	eDebug("[eDVBServicePMTHandler] CATready error %d", error);
 	if (error)
 	{
-		if (eDVBServicePMTHandler::m_debug)
-			eDebug("[eDVBServicePMTHandler] CATready error %d", error);
 		return;
 	}
 
 	ePtr<eTable<ConditionalAccessSection> > ptr;
 	if (!m_CAT.getCurrent(ptr))
 	{
-		if (eDVBServicePMTHandler::m_debug)
-			eDebug("[eDVBServicePMTHandler] CATready parsed CAT table!");
+		eDebug("[eDVBServicePMTHandler] CATready parsed CAT table with %zu sections!", ptr->getSections().size());
 		for (std::vector<ConditionalAccessSection*>::const_iterator i = ptr->getSections().begin(); i != ptr->getSections().end(); ++i)
 		{
 			const ConditionalAccessSection &cat = **i;
@@ -656,6 +654,7 @@ int eDVBServicePMTHandler::getProgramInfo(program &program)
 		return 0;
 	}
 
+	std::vector<int> prevEmmPids = m_cached_program.emmPids;
 	eDVBPMTParser::clearProgramInfo(program);
 
 	for (int m = 0; m < eDVBService::cacheMax; m++)
@@ -1050,6 +1049,11 @@ int eDVBServicePMTHandler::getProgramInfo(program &program)
 		program.adapterId = adapter;
 		m_demux->getCADemuxID(demux);
 		program.demuxId = demux;
+	}
+
+	if (program.emmPids.empty() && !prevEmmPids.empty())
+	{
+		program.emmPids = prevEmmPids;
 	}
 
 	m_cached_program = program;

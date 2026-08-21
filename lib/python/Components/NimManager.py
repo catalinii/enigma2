@@ -76,11 +76,14 @@ class SecConfigure:
 		return self.configuredSatellites
 
 	def addSatellite(self, sec, orbpos):
-		sec.addSatellite(orbpos)
-		self.configuredSatellites.add(orbpos)
+		sec.addSatellite(int(orbpos))
+		self.configuredSatellites.add(int(orbpos))
 
 	def addLNBSimple(self, sec, slotid, diseqcmode, toneburstmode=diseqcParam.NO, diseqcpos=diseqcParam.SENDNO, orbpos=0, longitude=0, latitude=0, loDirection=0, laDirection=0, turningSpeed=rotorParam.FAST, useInputPower=True, inputPowerDelta=50, fastDiSEqC=False, setVoltageTone=True, diseqc13V=False, CircularLNB=False):
-		if orbpos is None or orbpos == 3600 or orbpos == 3601:
+		if orbpos is None:
+			return
+		orbpos = int(orbpos)
+		if orbpos == 3600 or orbpos == 3601:
 			return
 		#simple defaults
 		if sec.addLNB():
@@ -2380,7 +2383,7 @@ def InitNimManager(nimmgr, update_slots=None):
 			nim.simpleDiSEqCSetCircularLNB = ConfigYesNo(True)
 			nim.autoDiSEqCOrderSingle = ConfigSelection([("all", _("All")), ("astra", _("Central Europe")), ("east", _("Eastern satellites")), ("west", _("Western satellites")), ("circular", _("Circular LNB"))], "all")
 			nim.autoDiSEqCOrder = ConfigSelection([("all", _("All")), ("astra", _("Central Europe")), ("east", _("Eastern satellites")), ("west", _("Western satellites"))], "all")
-			nim.diseqcA = ConfigSatlist(list=diseqc_satlist_choices)
+			nim.diseqcA = ConfigSatlist(list=diseqc_satlist_choices, default=130)
 			nim.diseqcB = ConfigSatlist(list=diseqc_satlist_choices)
 			nim.diseqcC = ConfigSatlist(list=diseqc_satlist_choices)
 			nim.diseqcD = ConfigSatlist(list=diseqc_satlist_choices)
@@ -2493,7 +2496,7 @@ def InitNimManager(nimmgr, update_slots=None):
 				config_mode_choices.append(("satposdepends", _("Second cable of motorized LNB")))
 			if len(nimmgr.canConnectTo(slot_id)) > 0:
 				config_mode_choices.append(("loopthrough", _("loopthrough to")))
-			default = "nothing" if slot.isMultiType() else "simple"
+			default = "simple" if (slot_id >= 8 or not slot.isMultiType()) else "nothing"
 			if slot.isFBCLink():
 				config_mode_choices = {"nothing": _("FBC automatic"), "advanced": _("FBC SCR (Unicable/JESS)")}
 				rootconfig = slot.getFBCRootConfig(nimmgr.nim_slots)
@@ -2506,6 +2509,8 @@ def InitNimManager(nimmgr, update_slots=None):
 			tmp.slot_id = slot_id
 			tmp.addNotifier(configModeChanged, initial_call=False)
 			nim.configMode = tmp
+			if slot_id >= 8 and nim.configMode.value == "nothing":
+				nim.configMode.value = "simple"
 			nim.configMode.connectedToChanged = boundFunction(connectedToChanged, slot_id, nimmgr)
 			nim.connectedTo.addNotifier(boundFunction(connectedToChanged, slot_id, nimmgr), initial_call=False)
 		configChoices = [
@@ -2614,7 +2619,11 @@ def InitNimManager(nimmgr, update_slots=None):
 				typeList.append((_id, _type))
 				if BoxInfo.getItem("displaybrand") == "Beyonwiz" and _type.startswith("DVB-T"):
 					default = _id
+				if (slot_id >= 8 or "SAT>IP" in slot.description) and _type.startswith("DVB-S"):
+					default = _id
 			nim.multiType = ConfigSelection(typeList, default)
+			if (slot_id >= 8 or "SAT>IP" in slot.description):
+				nim.multiType.value = default
 			nim.multiType.fe_id = slot_id - empty_slots
 			nim.multiType.addNotifier(boundFunction(tunerTypeChanged, nimmgr))
 
