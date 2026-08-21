@@ -966,6 +966,7 @@ def InitUsageConfig():
 		("(1920, 1080)", "1920x1080")
 	])
 	config.usage.enable_delivery_system_workaround = ConfigYesNo(default=False)
+	config.usage.add_ecm_emm_filters = ConfigYesNo(default=True)
 
 	config.usage.date = ConfigSubsection()
 	config.usage.date.enabled = NoSave(ConfigBoolean(default=False))
@@ -2404,7 +2405,6 @@ def InitUsageConfig():
 	config.streaming.stream_ait = ConfigYesNo(default=True)
 	config.streaming.stream_sdtbat = ConfigYesNo(default=False)
 	config.streaming.authentication = ConfigYesNo(default=False)
-	config.streaming.satip_add_extra_pids = ConfigYesNo(default=True)
 
 	config.pluginbrowser = ConfigSubsection()
 	config.pluginbrowser.po = ConfigYesNo(default=False)
