@@ -275,7 +275,7 @@ void eDVBCSASession::ecmDataReceived(const uint8_t *data)
 			eDebug("[eDVBCSASession] ECM analyzed: Not CSA-ALT, hardware descrambling will be used");
 		}
 
-		if (!eSimpleConfig::getBool("config.usage.add_ecm_emm_filters", true))
+		if (!eSimpleConfig::getBool("config.usage.add_ecm_emm_filters", false))
 		{
 			stopECMMonitor();
 		}

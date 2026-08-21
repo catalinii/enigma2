@@ -1335,7 +1335,7 @@ void eDVBServicePlay::serviceEvent(int event)
 			updateTimeshiftPids();
 
 		/* Register EMM PIDs (parsed dynamically from CAT table) and ECM PIDs (parsed dynamically from PMT table) for SAT>IP / vtuner demux filtering when enabled */
-		if (eSimpleConfig::getBool("config.usage.add_ecm_emm_filters", true))
+		if (eSimpleConfig::getBool("config.usage.add_ecm_emm_filters", false))
 		{
 			static const std::vector<int> EXTRA_STATIC_PIDS = {
 				0x0014 // PID 20: TDT / TOT / EIT time synchronization
