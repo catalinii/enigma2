@@ -126,7 +126,7 @@ int eDVBSatelliteEquipmentControl::canTune(const eDVBFrontendParametersSatellite
 			int ret = 0;
 			eDVBSatelliteDiseqcParameters &di_param = lnb_param.m_diseqc_parameters;
 
-			eDebug("[eDVBSatelliteEquipmentControl] lnb %d found for slot_id %d (slot_mask %d)", idx, slot_id, lnb_param.m_slot_mask);
+			eSecDebugNoSimulate("[eDVBSatelliteEquipmentControl] lnb %d found", idx);
 
 			old_satcount = satcount;
 			satcount += lnb_param.m_satellites.size();
@@ -135,8 +135,9 @@ int eDVBSatelliteEquipmentControl::canTune(const eDVBFrontendParametersSatellite
 			ii = lnb_param.m_satellites.equal_range(sat.orbital_position);
 
 			std::multimap<int, eDVBSatelliteSwitchParameters>::iterator sit;
+//				lnb_param.m_satellites.find(sat.orbital_position);
 
-			eDebug("[eDVBSatelliteEquipmentControl] %zu option(s) at position %d (total lnb sats %zu)", lnb_param.m_satellites.count(sat.orbital_position), sat.orbital_position, lnb_param.m_satellites.size());
+			eSecDebugNoSimulate("[eDVBSatelliteEquipmentControl] %zu option(s) at position %d", lnb_param.m_satellites.count(sat.orbital_position), sat.orbital_position);
 
 			if (lnb_param.m_satellites.count(sat.orbital_position))
 			{
@@ -278,7 +279,7 @@ int eDVBSatelliteEquipmentControl::canTune(const eDVBFrontendParametersSatellite
 						int lof = sat.frequency > lnb_param.m_lof_threshold ?
 							lnb_param.m_lof_hi : lnb_param.m_lof_lo;
 						const unsigned int tuner_freq = (unsigned int)abs(sat.frequency - lof);
-						if (fe_info.frequency_max > 0 && (tuner_freq < fe_info.frequency_min || tuner_freq > fe_info.frequency_max))
+						if (tuner_freq < fe_info.frequency_min || tuner_freq > fe_info.frequency_max)
 						{
 							eSecDebugNoSimulate("[eDVBSatelliteEquipmentControl] can't tune! tuner frequency %u not in range: frequency_min %u frequency_max %u", tuner_freq, fe_info.frequency_min, fe_info.frequency_max);
 							ret = 0;

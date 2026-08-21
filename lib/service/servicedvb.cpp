@@ -1340,13 +1340,13 @@ void eDVBServicePlay::serviceEvent(int event)
 			ePtr<iDVBDemux> live_demux;
 			if (m_service_handler.getDataDemux(live_demux) == 0 && live_demux)
 			{
-				if (!m_pid20_reader && live_demux->createSectionReader(eApp, m_pid20_reader) == 0 && m_pid20_reader)
+				if (!m_extra_pids_reader && live_demux->createSectionReader(eApp, m_extra_pids_reader) == 0 && m_extra_pids_reader)
 				{
 					eDVBSectionFilterMask mask = {};
 					mask.pid = 20;
 					mask.data[0] = 0x00;
 					mask.mask[0] = 0x00;
-					m_pid20_reader->start(mask);
+					m_extra_pids_reader->start(mask);
 					eDebug("[eDVBServicePlay] Persistent section reader started on PID 20 (0x0014)");
 				}
 
@@ -1833,10 +1833,10 @@ RESULT eDVBServicePlay::stop()
 
 	cleanupSoftwareDescrambling();
 
-	if (m_pid20_reader)
+	if (m_extra_pids_reader)
 	{
-		m_pid20_reader->stop();
-		m_pid20_reader = nullptr;
+		m_extra_pids_reader->stop();
+		m_extra_pids_reader = nullptr;
 	}
 	for (auto& reader : m_ecm_readers)
 	{
