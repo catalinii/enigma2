@@ -40,7 +40,7 @@ is usually caused by not marking PSignals as immutable.
 
 #define SWIG_COMPILE
 #ifndef t_output_helper
-#define t_output_helper(res, obj) SWIG_Python_AppendOutput(res, obj, 0)
+#define t_output_helper(res, obj) SWIG_Python_AppendOutput(res, obj, (res == Py_None) ? 1 : 0)
 #endif
 #include <lib/base/ebase.h>
 #include <lib/base/smartptr.h>
@@ -395,19 +395,14 @@ public:
 %{
 RESULT SwigFromPython(ePtr<gPixmap> &result, PyObject *obj)
 {
-	ePtr<gPixmap> *res;
-
-	res = 0;
+	ePtr<gPixmap> *res = 0;
 	result = 0;
-#ifndef SWIGTYPE_p_ePtrT_gPixmap_t
-#define SWIGTYPE_p_ePtrT_gPixmap_t SWIGTYPE_p_ePtrTgPixmap_t
-#endif
-	if (SWIG_Python_ConvertPtr(obj, (void **)&res, SWIGTYPE_p_ePtrT_gPixmap_t, SWIG_POINTER_EXCEPTION | 0))
-		return -1;
-	if (!res)
-		return -1;
-	result = *res;
-	return 0;
+	if (SWIG_Python_ConvertPtr(obj, (void **)&res, SWIGTYPE_p_ePtrT_gPixmap_t, 0) == 0 && res)
+	{
+		result = *res;
+		return 0;
+	}
+	return -1;
 }
 PyObject *New_eServiceReference(const eServiceReference &ref)
 {

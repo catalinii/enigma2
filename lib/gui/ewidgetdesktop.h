@@ -60,7 +60,9 @@ public:
 	void setRedrawTask(eMainloop &ml);
 
 	void makeCompatiblePixmap(ePtr<gPixmap> &pm);
+#ifndef SWIG
 	void makeCompatiblePixmap(gPixmap &pm);
+#endif
 
 	enum {
 		cmImmediate,
