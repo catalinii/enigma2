@@ -316,6 +316,14 @@ void eDVBServicePMTHandler::CATready(int error)
 					uint16_t caid = ca->getCaSystemId();
 					uint16_t emm_pid = ca->getCaPid();
 					eDebug("[eDVBServicePMTHandler] CAT CaDescriptor: CAID 0x%04X, EMM PID %d (0x%04X)", caid, emm_pid, emm_pid);
+
+					eDVBCIInterfaces *ci = eDVBCIInterfaces::getInstance();
+					if (ci && !ci->isCAIDSupported(caid))
+					{
+						eDebug("[eDVBServicePMTHandler] Skipping EMM PID %d (0x%04X) with CAID 0x%04X: not supported by connected CI modules", emm_pid, emm_pid, caid);
+						continue;
+					}
+
 					bool exists = false;
 					for (int p : m_cached_program.emmPids)
 					{

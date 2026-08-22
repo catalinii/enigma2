@@ -43,6 +43,7 @@
 #include <chrono>
 #include <thread>
 #include <lib/dvb_ci/descrambler.h>
+#include <lib/dvb_ci/dvbci.h>
 
 #include <byteswap.h>
 #include <netinet/in.h>
@@ -1403,11 +1404,18 @@ void eDVBServicePlay::serviceEvent(int event)
 					}
 
 					// Dynamically register ECM PIDs parsed from PMT table (e.g. 1030 / 1042)
+					eDVBCIInterfaces *ci = eDVBCIInterfaces::getInstance();
 					for (const auto& ca : program.caids)
 					{
 						int ecm_pid = ca.capid;
+						uint16_t caid = (uint16_t)ca.caid;
 						if (ecm_pid > 0 && ecm_pid < 0x1FFF)
 						{
+							if (ci && !ci->isCAIDSupported(caid))
+							{
+								eDebug("[eDVBServicePlay] Skipping ECM PID %d (0x%04x) with CAID 0x%04x: not supported by connected CI modules", ecm_pid, ecm_pid, caid);
+								continue;
+							}
 							bool exists = false;
 							for (int existing_pid : m_ecm_pids)
 							{
