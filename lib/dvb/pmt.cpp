@@ -1214,6 +1214,8 @@ int eDVBServicePMTHandler::tuneExt(eServiceReferenceDVB &ref, ePtr<iTsSource> &s
 	RESULT res=0;
 	m_reference = ref;
 	m_reference.name = ""; // clear name, we don't need it
+	// Reset PMT and table state for new service; reset m_last_channel_state so channelStateChanged
+	// properly initializes table readers (PAT/CAT/PMT) even on same-transponder channel switches.
 	m_pmt_ready = false;
 	m_have_cached_program = false;
 	m_cached_program.emmPids.clear();
