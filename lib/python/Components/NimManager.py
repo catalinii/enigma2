@@ -359,7 +359,25 @@ class SecConfigure:
 							continue
 						eDVBResourceManager.getInstance().setFrontendType(slot.frontend_id, FeType, True)
 				else:
-					eDVBResourceManager.getInstance().setFrontendType(slot.frontend_id, slot.getType())
+					# For single-type tuners, respect configMode=nothing: disabled tuners (A-H with
+					# dvbc.configMode=nothing) must not advertise a delivery system, otherwise
+					# they could still be considered for tuning despite m_enabled=False.
+					slot_type = slot.getType()
+					enabled = True
+					if slot_type in ("DVB-C", "DVB-C2") and config.Nims[slot.slot].dvbc.configMode.value == "nothing":
+						enabled = False
+					elif slot_type in ("DVB-S", "DVB-S2", "DVB-S2X") and config.Nims[slot.slot].dvbs.configMode.value == "nothing":
+						enabled = False
+					elif slot_type in ("DVB-T", "DVB-T2") and config.Nims[slot.slot].dvbt.configMode.value == "nothing":
+						enabled = False
+					elif slot_type in ("ATSC") and config.Nims[slot.slot].atsc.configMode.value == "nothing":
+						enabled = False
+					if enabled:
+						eDVBResourceManager.getInstance().setFrontendType(slot.frontend_id, slot_type)
+					else:
+						# Clear whitelist for disabled single-type tuners so they report no
+						# supported delivery system and are never scored as compatible.
+						eDVBResourceManager.getInstance().setFrontendType(slot.frontend_id, "dummy", False)
 		print("[NimManager] sec config completed")
 
 	def updateAdvanced(self, sec, slotid):
