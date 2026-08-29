@@ -2499,6 +2499,8 @@ def InitNimManager(nimmgr, update_slots=None):
 	empty_slots = 0
 	for slot in nimmgr.nim_slots:
 		slot_id = slot.slot
+		if slot_id >= len(config.Nims):
+			continue
 		nim = config.Nims[slot_id]
 		nim.force_legacy_signal_stats = ConfigYesNo(default=False)
 		if slot.canBeCompatible("DVB-S"):
@@ -2614,6 +2616,8 @@ def InitNimManager(nimmgr, update_slots=None):
 	empty_slots = 0
 	for slot in nimmgr.nim_slots:
 		slot_id = slot.slot
+		if slot_id >= len(config.Nims):
+			continue
 		nim = config.Nims[slot_id]
 		addMultiType = False
 		try:
